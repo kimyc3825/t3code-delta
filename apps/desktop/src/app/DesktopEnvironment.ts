@@ -18,7 +18,7 @@ import { resolveDesktopBaseDir, resolveDesktopStateDir } from "./DesktopStatePat
 import { isNightlyDesktopVersion } from "../updates/updateChannels.ts";
 import type { OtlpProtocol } from "@t3tools/shared/observability";
 // [delta-seam:S7]
-import { DELTA_T3_HOME_DIR, isDeltaBuild } from "../delta/identity.ts";
+import { DELTA_APP_ID, DELTA_T3_HOME_DIR, isDeltaBuild } from "../delta/identity.ts";
 
 export interface MakeDesktopEnvironmentInput {
   readonly dirname: string;
@@ -237,7 +237,11 @@ const make = Effect.fn("desktop.environment.make")(function* (
     branding,
     displayName,
     appUserModelId: Option.getOrElse(config.appUserModelIdOverride, () =>
-      isDevelopment ? "com.t3tools.t3code.dev" : "com.t3tools.t3code",
+      isDevelopment
+        ? "com.t3tools.t3code.dev"
+        : isDeltaBuild(input.appVersion) // [delta-seam:S8]
+          ? DELTA_APP_ID
+          : "com.t3tools.t3code",
     ),
     linuxDesktopEntryName: resolveLinuxDesktopEntryName(isDevelopment),
     linuxApplicationsDir,
