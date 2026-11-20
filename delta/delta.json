@@ -73,6 +73,21 @@
         "apps/web/src/components/chat/TimelineAssistantRows.tsx"
       ],
       "keywords": ["tilde", "strikethrough"]
+    },
+    {
+      "id": "H2",
+      "status": "applied",
+      "title": "Antigravity(Gemini) 사용량이 집계되지 않음",
+      "files": [
+        "apps/server/src/provider/Drivers/AntigravityUsage.ts",
+        "apps/server/src/provider/Drivers/AntigravityUsage.test.ts"
+      ],
+      "watch": [
+        "apps/server/src/usage/UsageService.ts",
+        "apps/server/src/provider/Drivers/antigravityUsageReader.ts",
+        "apps/server/src/provider/antigravityAuthSupport.ts"
+      ],
+      "keywords": ["Antigravity usage", "usage.*Antigravity"]
     }
   ],
   "pending": [

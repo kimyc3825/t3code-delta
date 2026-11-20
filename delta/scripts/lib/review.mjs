@@ -169,7 +169,7 @@ export function review() {
     lines.push(`[전체 변경 목록](${UPSTREAM_URL}/releases/tag/${release.tag})`, "");
   }
 
-  lines.push("## 2. Delta에 미치는 영향", "", "### 직접 수정 (H)", "");
+  lines.push("## 2. 버그 수정: 원본이 고쳤나", "", "### 직접 수정 (H)", "");
   if (fixRows.length === 0) lines.push("없음", "");
   else {
     lines.push("| ID | 내용 | 원본 이슈 · PR | 관련 원본 커밋 | 판단 |", "|---|---|---|---|---|");
@@ -195,7 +195,7 @@ export function review() {
     }
   }
 
-  lines.push("### 임시 패치 (P)", "");
+  lines.push("### 원본 PR 패치 (P)", "");
   if (pending.length === 0) lines.push("없음", "");
   else {
     lines.push("| ID | 내용 | 원본 PR | 새 태그에 포함 | 동기화 때 |", "|---|---|---|---|---|");
@@ -208,7 +208,7 @@ export function review() {
     lines.push("");
   }
 
-  lines.push("### 연결 지점 (seam)", "");
+  lines.push("## 3. 기능: 그대로 동작하나", "", "### 연결 지점 (seam)", "");
   lines.push("| ID | 원본 파일 | 원본 커밋 | 충돌 가능성 |", "|---|---|---|---|");
   for (const { seam, commits, exists } of seamRows) {
     const risk = !exists ? "파일이 없어짐: 새 위치를 찾아야 함" : commits.length ? "있음" : "낮음";
@@ -240,12 +240,12 @@ export function review() {
     }
   }
 
-  lines.push("### 빌드 도구", "", `| 항목 | ${base} | ${target} |`, "|---|---|---|");
+  lines.push("## 4. 빌드 도구", "", `| 항목 | ${base} | ${target} |`, "|---|---|---|");
   for (const key of Object.keys(before)) {
     const changed = before[key] !== after[key] ? " (바뀜)" : "";
     lines.push(`| ${key} | ${before[key]} | ${after[key]}${changed} |`);
   }
-  lines.push("", "## 3. 결정할 것", "");
+  lines.push("", "## 5. 결정할 것", "");
   for (const { fix, verdict } of fixRows) {
     lines.push(
       `- [ ] ${fix.id} ${fix.title ?? ""}: ${verdict}. 빼려면 delta.json에서 \`"status": "retired"\`로 바꾸고 커밋한다`,

@@ -59,7 +59,7 @@
 
 ## 수정 (hotfix, pending)
 
-[PATCHNOTES.md](PATCHNOTES.md)를 본다. 직접 수정 H1(단일 틸드), 임시 패치 P2(Antigravity 한도)가 적용돼 있다.
+[PATCHNOTES.md](PATCHNOTES.md)를 본다. 직접 수정 H1(단일 틸드)·H2(Antigravity 사용량), 원본 PR 패치 P2(Antigravity 한도)가 적용돼 있다.
 
 ## 생성 파일
 

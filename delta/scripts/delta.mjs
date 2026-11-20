@@ -104,12 +104,15 @@ function printStatus(report) {
         `${s.id} ${s.ok === true ? "적용✓" : s.ok === false ? "누락✗" : s.status === "planned" ? "예정" : "선택"}`,
     )
     .join(" · ");
-  lines.push(`seam        ${seamText}`);
   const list = (items, label) => (items.length === 0 ? "없음" : items.map(label).join(" · "));
-  lines.push(`hotfix      ${list(report.hotfixes, (f) => hotfixLabel(f, latest))}`);
-  lines.push(`pending     ${list(report.pending, (p) => pendingLabel(p, latest))}`);
+  // Features stay until removed; bug fixes leave once upstream ships its own fix.
+  lines.push("", "버그 수정 (원본이 고치면 뺀다 · 원본을 올릴 때마다 review)");
+  lines.push(`  직접 수정   ${list(report.hotfixes, (f) => hotfixLabel(f, latest))}`);
+  lines.push(`  원본 PR     ${list(report.pending, (p) => pendingLabel(p, latest))}`);
+  lines.push("", "기능 (원본에 없는 것)");
+  lines.push(`  연결 지점   ${seamText}`);
   lines.push(
-    `플러그인    ${list(report.plugins, (p) => {
+    `  플러그인    ${list(report.plugins, (p) => {
       const state =
         p.issues.length > 0
           ? "문제✗"
