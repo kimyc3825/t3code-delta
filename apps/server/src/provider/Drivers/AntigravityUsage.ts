@@ -68,7 +68,8 @@ const make = Effect.gen(function* () {
   }) {
     const roots: Array<string> = [];
     for (const instance of instances) roots.push(...(yield* dataRoots(instance.environment)));
-    for (const { instanceId } of instances.filter((instance) => instance.configured)) {
+    // [delta-fix:H2] The default instance also runs from a T3-managed profile; scan it when it exists.
+    for (const { instanceId, configured } of instances) {
       const directories = yield* resolveAntigravityInstanceDirectories(
         host.paths.stateDir,
         instanceId,
@@ -84,7 +85,14 @@ const make = Effect.gen(function* () {
             }),
         ),
       );
-      roots.push(path.join(directories.profile, "antigravity-acp"));
+      const profileRoot = path.join(directories.profile, "antigravity-acp");
+      if (
+        !configured &&
+        !(yield* fileSystem.exists(profileRoot).pipe(Effect.orElseSucceed(() => false)))
+      ) {
+        continue; // [delta-fix:H2]
+      }
+      roots.push(profileRoot);
     }
     const conversationDirs = new Set<string>();
     for (const root of roots) {
