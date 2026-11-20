@@ -1,0 +1,62 @@
+/* T3 Code - Delta: sidebar thread cards.
+   Uses the theme hooks upstream keeps stable ([data-thread-item], [data-slot="sidebar"])
+   and the row's ARIA state (aria-current="page" for the open thread, aria-busy while its
+   title is regenerating). Colors come from the stock palette; only the Delta mark is teal. */
+
+:root {
+  --delta-mark: #0d9488;
+  --delta-mark-soft: color-mix(in srgb, #0d9488 9%, transparent);
+  --delta-mark-line: color-mix(in srgb, #0d9488 28%, transparent);
+}
+.dark {
+  --delta-mark: #2dd4bf;
+  --delta-mark-soft: color-mix(in srgb, #2dd4bf 10%, transparent);
+  --delta-mark-line: color-mix(in srgb, #2dd4bf 30%, transparent);
+}
+
+/* Every thread row: rounder corners and a hairline on hover. */
+[data-slot="sidebar"] [data-thread-item] [data-sidebar-row] {
+  border-radius: 10px !important;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+[data-slot="sidebar"] [data-thread-item] [data-sidebar-row]:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The open thread: teal bar on the left and a faint teal wash. */
+[data-slot="sidebar"] [data-thread-item] [data-sidebar-row][aria-current="page"] {
+  background-color: var(--delta-mark-soft) !important;
+  box-shadow:
+    inset 3px 0 0 var(--delta-mark),
+    inset 0 0 0 1px var(--delta-mark-line) !important;
+}
+
+/* A title being regenerated: a slow shimmer across the row. */
+[data-slot="sidebar"] [data-thread-item] [data-sidebar-row][aria-busy="true"] {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    var(--delta-mark-soft) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: delta-row-shimmer 1.6s linear infinite;
+}
+@keyframes delta-row-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sidebar"] [data-thread-item] [data-sidebar-row] {
+    transition: none;
+  }
+  [data-slot="sidebar"] [data-thread-item] [data-sidebar-row][aria-busy="true"] {
+    animation: none;
+  }
+}

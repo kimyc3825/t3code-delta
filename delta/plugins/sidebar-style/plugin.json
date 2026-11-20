@@ -1,0 +1,10 @@
+{
+  "id": "sidebar-style",
+  "name": "사이드바 카드 스타일",
+  "version": "0.1.0",
+  "description": "원본 기본 색을 그대로 쓰고, 사이드바 스레드 카드에 둥근 모서리, 열린 스레드의 청록 막대, 제목 생성 중 반짝임을 더한다",
+  "enabled": true,
+  "testedUpstream": "v0.1.10",
+  "parts": { "theme": "delta/plugins/sidebar-style/theme" },
+  "slots": []
+}
