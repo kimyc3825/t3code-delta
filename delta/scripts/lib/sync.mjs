@@ -136,8 +136,9 @@ export function syncStart(cliPath) {
   const toPosix = (path) => path.replaceAll("\\", "/");
   const toolCli = toPosix(copyTool(cliPath));
   const editor = `"${toPosix(process.execPath)}" "${toolCli}" __edit-todo`;
+  // Rebases the current branch; naming it would clash with the delta/ folder.
   const ok = gitInherit(
-    ["rebase", "-i", "--empty=drop", "--onto", target, manifest.upstream.commit, branch],
+    ["rebase", "-i", "--empty=drop", "--onto", target, manifest.upstream.commit],
     {
       GIT_SEQUENCE_EDITOR: editor,
       DELTA_SYNC_DROP: stack.commits
