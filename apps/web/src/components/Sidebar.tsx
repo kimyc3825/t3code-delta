@@ -278,6 +278,14 @@ import {
   SidebarSectionHeader,
   SidebarSectionPlaceholder,
 } from "./sidebar/SidebarListMarkers";
+// [delta-seam:S9] Delta sidebar hooks (S9-S12).
+import {
+  deltaThreadMenuItems,
+  handleDeltaThreadMenu,
+  isDeltaMenuId,
+  renderProjectFolderThreads,
+  useDeltaSidebar,
+} from "../delta/host/sidebar";
 
 function sameSidebarProviderEntries(
   left: ReadonlyMap<string, SidebarProviderEntry>,
@@ -471,6 +479,7 @@ function useSidebarThreads(input: {
   // Shared with the old per-project sidebar, so folders keep their open state.
   const projectExpandedById = useUiStateStore((store) => store.projectExpandedById);
   const setProjectExpanded = useUiStateStore((store) => store.setProjectExpanded);
+  const deltaSidebar = useDeltaSidebar(); // [delta-seam:S9]
   const [settledTail, setSettledTail] = useState({
     scopeKey: projectScopeKey,
     count: SETTLED_TAIL_INITIAL_COUNT,
@@ -530,22 +539,31 @@ function useSidebarThreads(input: {
   const projectFolders =
     folderGroups === null
       ? null
-      : groupSidebarThreadsByProject(folderGroups, activeThreads, keepEmpty).map((folder) => {
+      : groupSidebarThreadsByProject(
+          folderGroups,
+          activeThreads,
+          deltaSidebar.keepProjectFolder(keepEmpty), // [delta-seam:S9]
+        ).map((folder) => {
           const collapsed = !resolveProjectExpanded(
             projectExpandedById,
             sidebarFolderExpansionKeys(folder.group),
           );
-          return {
-            group: folder.group,
-            collapsed,
-            // A closed folder still shows the open thread, and hints at the rest.
-            threads: collapsed
-              ? routeThreadOnly(folder.threads, routeRowThreadKey)
-              : folder.threads,
-            hiddenThreads: collapsed
-              ? folder.threads.filter((thread) => threadShellKey(thread) !== routeRowThreadKey)
-              : EMPTY_THREADS,
-          };
+          // [delta-seam:S9] Delta plugins may group a folder's threads.
+          return deltaSidebar.arrangeProjectFolder(
+            {
+              group: folder.group,
+              collapsed,
+              // A closed folder still shows the open thread, and hints at the rest.
+              threads: collapsed
+                ? routeThreadOnly(folder.threads, routeRowThreadKey)
+                : folder.threads,
+              hiddenThreads: collapsed
+                ? folder.threads.filter((thread) => threadShellKey(thread) !== routeRowThreadKey)
+                : EMPTY_THREADS,
+            },
+            folder.threads,
+            routeRowThreadKey,
+          );
         });
   const orderedThreads = [
     ...pinnedThreads,
@@ -2385,12 +2403,16 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
               destructive: true,
               disabled: !canOperateThreads(selectedThreads),
             },
+            ...deltaThreadMenuItems(selectedThreads, projectGroupsRef.current), // [delta-seam:S12]
           ],
           position,
           source,
         ),
       );
       if (clicked._tag === "Failure" || clicked.value === null) return;
+      if (isDeltaMenuId(clicked.value)) {
+        return handleDeltaThreadMenu(clicked.value, selectedThreads, projectGroupsRef.current); // [delta-seam:S12]
+      }
       const actionTargets =
         clicked.value === "unpin"
           ? pinnedSelectedThreads
@@ -2665,12 +2687,15 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                 titleRegeneration: configLoaded,
               },
               snoozePresets,
-            }),
+            }).concat(deltaThreadMenuItems([thread], projectGroupsRef.current)), // [delta-seam:S11]
             position,
             source,
           ),
         );
         if (clicked._tag === "Failure" || clicked.value === null) return;
+        if (isDeltaMenuId(clicked.value)) {
+          return handleDeltaThreadMenu(clicked.value, [thread], projectGroupsRef.current); // [delta-seam:S11]
+        }
         if (threadActionRequiresOperate(clicked.value) && !checkThreadOperations([thread])) return;
         if (clicked.value?.startsWith("snooze:")) {
           const preset =
@@ -3507,15 +3532,16 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
                                 onContextMenu={handleProjectFolderContextMenu}
                               />,
                             );
-                            for (const thread of folder.threads) {
-                              items.push(
+                            // [delta-seam:S10] Delta plugins may draw a folder's threads.
+                            items.push(
+                              ...renderProjectFolderThreads(folder, (thread, parentRow) =>
                                 renderThreadRow(
                                   thread,
                                   "active",
-                                  sidebarFolderRowId(folder.group.projectKey),
+                                  parentRow ?? sidebarFolderRowId(folder.group.projectKey),
                                 ),
-                              );
-                            }
+                              ),
+                            );
                           }
                           continue;
                         }
