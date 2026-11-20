@@ -469,9 +469,13 @@ function syncStart() {
     return;
   }
 
-  console.log(`원본 ${target} 태그를 가져온다…`);
-  if (!gitInherit(["fetch", "--no-tags", "upstream", `+refs/tags/${target}:refs/tags/${target}`])) {
-    fail(`upstream에서 ${target}을 가져오지 못했다.`);
+  if (git("rev-parse", "--verify", "--quiet", `refs/tags/${target}`) === null) {
+    console.log(`원본 ${target} 태그를 가져온다…`);
+    if (
+      !gitInherit(["fetch", "--no-tags", "upstream", `+refs/tags/${target}:refs/tags/${target}`])
+    ) {
+      fail(`upstream에서 ${target}을 가져오지 못했다.`);
+    }
   }
   const targetCommit = git("rev-parse", `${target}^{commit}`);
 
