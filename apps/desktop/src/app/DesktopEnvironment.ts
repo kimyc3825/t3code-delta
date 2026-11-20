@@ -17,6 +17,8 @@ import { resolveLinuxDesktopEntryName } from "./DesktopEarlyElectronStartup.ts";
 import { resolveDesktopBaseDir, resolveDesktopStateDir } from "./DesktopStatePaths.ts";
 import { isNightlyDesktopVersion } from "../updates/updateChannels.ts";
 import type { OtlpProtocol } from "@t3tools/shared/observability";
+// [delta-seam:S7]
+import { DELTA_T3_HOME_DIR, isDeltaBuild } from "../delta/identity.ts";
 
 export interface MakeDesktopEnvironmentInput {
   readonly dirname: string;
@@ -162,7 +164,11 @@ const make = Effect.fn("desktop.environment.make")(function* (
   const baseDir = resolveDesktopBaseDir({
     homeDirectory,
     joinPath: path.join,
-    t3Home: config.t3Home,
+    // [delta-seam:S7] Delta builds keep their own T3 home unless T3CODE_HOME is set.
+    t3Home:
+      isDeltaBuild(input.appVersion) && Option.isNone(config.t3Home)
+        ? Option.some(path.join(homeDirectory, DELTA_T3_HOME_DIR))
+        : config.t3Home,
   });
   const rootDir = path.resolve(input.dirname, "../../..");
   const appRoot = input.isPackaged ? input.appPath : rootDir;
