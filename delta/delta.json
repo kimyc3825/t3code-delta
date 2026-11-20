@@ -30,7 +30,31 @@
     { "id": "S5", "status": "applied", "file": "scripts/build-desktop-artifact.ts" },
     { "id": "S6", "status": "applied", "file": "apps/desktop/src/app/DesktopUserData.ts" },
     { "id": "S7", "status": "applied", "file": "apps/desktop/src/app/DesktopEnvironment.ts" },
-    { "id": "S8", "status": "applied", "file": "apps/desktop/src/app/DesktopEnvironment.ts" }
+    { "id": "S8", "status": "applied", "file": "apps/desktop/src/app/DesktopEnvironment.ts" },
+    {
+      "id": "S9",
+      "status": "applied",
+      "file": "apps/web/src/components/Sidebar.tsx",
+      "slot": "sidebar-project-arrange"
+    },
+    {
+      "id": "S10",
+      "status": "applied",
+      "file": "apps/web/src/components/Sidebar.tsx",
+      "slot": "sidebar-project-render"
+    },
+    {
+      "id": "S11",
+      "status": "applied",
+      "file": "apps/web/src/components/Sidebar.tsx",
+      "slot": "sidebar-thread-menu"
+    },
+    {
+      "id": "S12",
+      "status": "applied",
+      "file": "apps/web/src/components/Sidebar.tsx",
+      "slot": "sidebar-selection-menu"
+    }
   ],
   "hotfixes": [
     {

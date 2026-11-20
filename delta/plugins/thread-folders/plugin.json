@@ -1,0 +1,21 @@
+{
+  "id": "thread-folders",
+  "name": "스레드 하위 폴더",
+  "version": "0.1.0",
+  "description": "묶음 사이드바의 프로젝트 안에서 스레드를 하위 폴더로 나눈다. 폴더는 이 앱 안에만 저장되고 디스크 폴더와는 관계없다",
+  "enabled": true,
+  "testedUpstream": "v0.1.10",
+  "parts": { "web": "apps/web/src/delta/plugins/thread-folders" },
+  "slots": [
+    "sidebar-project-arrange",
+    "sidebar-project-render",
+    "sidebar-thread-menu",
+    "sidebar-selection-menu"
+  ],
+  "watch": [
+    "apps/web/src/components/Sidebar.tsx",
+    "apps/web/src/components/sidebar/SidebarThreadRow.tsx",
+    "apps/web/src/components/sidebar/SidebarProjectFolderHeader.tsx",
+    "apps/web/src/lib/sidebarTree.ts"
+  ]
+}

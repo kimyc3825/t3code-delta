@@ -16,7 +16,7 @@
    - 원본 버그를 고치면 수정이다. 원본에 쓸 만한 PR이 있으면 임시 패치(P, `pending(#N)`)로 가져오고, 없으면 직접 수정
      (H, `hotfix(Hn)`)으로 최소한만 고친다. 고친 줄에 `[delta-fix:<ID>]`, `delta.json`의 `hotfixes`에 원본 이슈·PR,
      `files`, `watch`, `keywords`를 적고, PATCHNOTES.md에 증상·원인·빼는 조건을 쓴다.
-6. **커밋:** 메시지는 `pending(#N): …`, `hotfix(Hn): …`, `seam(Sx): …`, `delta: …` 네 종류 중 하나다.
+6. **커밋:** 메시지는 `pending(#N): …`, `hotfix(Hn): …`, `seam(Sx): …`(한 기능·한 파일이면 `seam(S9-S12): …`), `delta: …` 네 종류 중 하나다.
    한 커밋에 섞지 않는다. 스택 순서는 기준 태그부터 pending → hotfix → seam → delta다.
 7. **커밋 전:** `node delta/scripts/delta.mjs check`가 통과해야 한다. `vp i`를 한 클론에서는 원본 pre-commit 훅
    (포맷, 린트, knip)도 통과해야 한다. 훅을 건너뛰지(`--no-verify`) 않는다.

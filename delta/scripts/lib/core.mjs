@@ -138,7 +138,8 @@ export function readBase() {
 export const COMMIT_KINDS = [
   { kind: "pending", pattern: /^pending\(#(\d+)\): / },
   { kind: "hotfix", pattern: /^hotfix\((H\d+)\): / },
-  { kind: "seam", pattern: /^seam\((S\d+)\): / },
+  // seam(S9-S12): seams for one feature in one file may share a commit.
+  { kind: "seam", pattern: /^seam\((S\d+(?:-S\d+)?)\): / },
   { kind: "delta", pattern: /^delta: / },
 ];
 export const STACK_ORDER = COMMIT_KINDS.map(({ kind }) => kind).join(" → ");

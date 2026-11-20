@@ -108,16 +108,19 @@ apps/web/src/delta/
 | 의존성 (`pnpm-lock.yaml`)                    | 충돌                  | 원본 lockfile을 받고 재생성. 웹 플러그인은 원본 의존성만 쓰고, 새 의존성은 MCP 쪽(워크스페이스 밖)에 둔다 |
 | 원본이 같은 기능을 출시                      | 중복                  | 해당 플러그인을 끄거나 지우고 `delta.json`에서 뺀다                                                       |
 
-**호스트 동작 (M2에서 구현)**
+**호스트 동작** (`apps/web/src/delta/host`, 2026-11-20 사이드바 부분 구현)
 
-- **빌드 때 포함:** Vite `import.meta.glob`로 `apps/web/src/delta/plugins/*/index.tsx`를 모은다.
+- **빌드 때 포함:** `registry.ts`가 Vite `import.meta.glob`로 `apps/web/src/delta/plugins/*/index.ts`와
+  `delta/plugins/*/plugin.json`을 모은다. `plugin.json`의 `enabled`가 `false`이거나 매니페스트가 없으면 넣지 않는다.
   런타임 로더, 업로드, 파일 서빙이 없어서 데스크톱 CSP 문제도 없다.
-- **등록:** 플러그인은 `defineDeltaPlugin({ id, slots: { "sidebar-footer": Component }, activate })`를 export한다.
-  `activate`에서 단축키 같은 원본 레지스트리(`registerCommands`)에 등록한다.
-- **격리:** 슬롯마다 플러그인별 오류 경계를 둔다. 플러그인 하나가 실패해도 T3 화면은 그대로 남는다.
-- **끄기:** `plugin.json`의 `enabled`가 `false`면 번들에서 뺀다. `DELTA_PLUGINS=off`로 빌드하면 플러그인을 하나도 넣지 않는다.
-  버그가 원본 것인지 Δ 것인지 가를 때 쓴다.
-- **규칙 검사:** `delta.mjs check`가 `apps/web/src/delta/plugins/**`에서 sdk를 거치지 않은 원본 import를 찾아낸다(M2에서 추가).
+- **끄기:** `VITE_DELTA_PLUGINS=off`로 빌드하면 플러그인을 하나도 넣지 않는다. 버그가 원본 것인지 Δ 것인지 가를 때 쓴다.
+- **등록:** 플러그인은 `defineDeltaPlugin({ id, sidebar: { … } })`를 default export한다(`host/types.ts`).
+- **사이드바 확장 (S9~S12):** `arrangeProjectFolder`(프로젝트 폴더의 스레드 정렬·필터, 선택 순서도 따라감),
+  `renderProjectFolder`(그 행 그리기), `threadMenuItems`·`onThreadMenu`(스레드·선택 메뉴 항목, id는 `delta.<플러그인>.<명령>`).
+  플러그인 상태가 바뀌면 `host/changes.ts`의 `notifySidebarChanged()`로 사이드바를 다시 그리게 한다.
+- **격리:** 훅 호출은 `guardPlugin`이 감싸서, 플러그인이 예외를 던지면 기록하고 원본 동작으로 돌아간다.
+  플러그인이 그린 요소는 `DeltaBoundary`가 감싸서 렌더링 오류가 나도 사이드바는 남는다.
+- **남은 것 (M2):** 범용 슬롯 `<DeltaSlot name="…">`(S1 독, S2 usage 위젯), `delta.mjs check`의 sdk 우회 import 검사.
 
 **업데이트 절차: 검토하고 올린다** (`delta.mjs review` → `delta.mjs sync`)
 
