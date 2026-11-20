@@ -183,14 +183,21 @@ export function syncFinish() {
     pending: manifest.pending.filter((p) => !droppedPrs.has(p.pr)),
     hotfixes: (manifest.hotfixes ?? []).filter((f) => !retired.has(f.id)),
   });
-  const removed = [...state.droppedPending.map((p) => `${p.id} #${p.pr}`), ...state.retiredFixes];
   const body = [
     `delta: sync to upstream ${state.to}`,
     "",
     `Rebased the stack from ${state.from} onto ${state.to} (${state.toCommit.slice(0, 10)}).`,
     `Review: ${state.review}`,
-    ...(removed.length ? [`Removed fixes upstream now covers: ${removed.join(", ")}.`] : []),
+    ...(state.droppedPending.length
+      ? [
+          `Dropped pending patches ${state.to} contains: ${state.droppedPending.map((p) => `${p.id} #${p.pr}`).join(", ")}.`,
+        ]
+      : []),
+    ...(state.retiredFixes.length
+      ? [`Dropped hotfixes retired in review: ${state.retiredFixes.join(", ")}.`]
+      : []),
   ].join("\n");
+  const removed = [...state.droppedPending.map((p) => `${p.id} #${p.pr}`), ...state.retiredFixes];
   const paths = ["delta/delta.json"];
   if (NodeFS.existsSync(NodePath.join(repoRoot, state.review))) {
     git("add", "--", state.review);

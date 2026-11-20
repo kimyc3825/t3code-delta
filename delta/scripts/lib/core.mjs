@@ -400,7 +400,8 @@ export function problemsOf(report) {
     if (fix.status === "applied" && fix.inBase === true)
       add(`${fix.id}: 원본 PR #${fix.pr}가 기준 원본 ${report.base.tag}에 들어 있음: 빼기를 검토`);
   }
-  const marked = new Set(report.hotfixes.filter((f) => f.status === "applied").map((f) => f.id));
+  // A retired hotfix keeps its markers until the next sync drops its commit.
+  const marked = new Set(report.hotfixes.filter((f) => f.status !== "planned").map((f) => f.id));
   for (const marker of readMarkers("fix", "H")) {
     if (!marked.has(marker.id))
       add(`delta.json에 적용으로 등록되지 않은 수정 표시: ${marker.id} (${marker.location})`);
