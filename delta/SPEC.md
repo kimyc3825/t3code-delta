@@ -1,6 +1,6 @@
 # T3 Code - Delta 스펙
 
-> 상태: 초안 v0.2 (2026-11-20) · 기준 원본과 현재 상태는 `node delta/scripts/delta.mjs status`로 확인한다.
+> 상태: 초안 v0.3 (2026-11-20) · 기준 원본과 현재 상태는 `node delta/scripts/delta.mjs status`로 확인한다.
 
 원본 T3 Code 위에 개인 기능 Δ(델타)를 얹는다. 원본은 거의 그대로 두고, Δ는 작게 유지한다.
 저장소 구조, 원본 추적, 플러그인 구조는 [ARCHITECTURE.md](ARCHITECTURE.md)에 있다.
@@ -13,15 +13,15 @@
 - **Delta(Δ)** 는 차이를 뜻한다. 이 포크는 "원본 + Δ"이고, Δ를 작게 유지하는 것이 핵심 원칙이다.
 - 식별자
 
-| 대상 | 값 |
-|---|---|
-| GitHub 저장소 | `kimyc3825/t3code-delta` |
-| 로컬 폴더 | `C:\Users\hana\t3code-delta` |
-| 기본 브랜치 | `delta` (원본 미러는 `main`) |
-| 포크 전용 폴더 | `delta/`, `apps/web/src/delta/` |
-| 빌드 버전 | `<원본 버전>+delta.<리비전>`, 예: `0.1.10+delta.1` |
-| 원본 수정 표시 | `[delta-seam:<ID>]` |
-| 슬롯 컴포넌트 | `<DeltaSlot>` |
+| 대상           | 값                                                 |
+| -------------- | -------------------------------------------------- |
+| GitHub 저장소  | `kimyc3825/t3code-delta`                           |
+| 로컬 폴더      | `C:\Users\hana\t3code-delta`                       |
+| 기본 브랜치    | `delta` (원본 미러는 `main`)                       |
+| 포크 전용 폴더 | `delta/`, `apps/web/src/delta/`                    |
+| 빌드 버전      | `<원본 버전>+delta.<리비전>`, 예: `0.1.10+delta.1` |
+| 원본 수정 표시 | `[delta-seam:<ID>]`                                |
+| 슬롯 컴포넌트  | `<DeltaSlot>`                                      |
 
 ## 2. 목표와 비목표
 
@@ -43,11 +43,11 @@
 
 **P1. 3단 구조: 원본에서 먼 단계를 먼저 쓴다**
 
-| 단계 | 원본 수정 | 원본 업데이트 때 | 예 |
-|---|---|---|---|
-| 0단: 원본의 공개 기능 | 없음 | 할 일 없음 | 테마 CSS, MCP 서버, 어시스턴트 스레드 |
-| 1단: 임시 패치 | 원본의 열린 PR을 체리픽 | 원본이 머지하면 삭제 | Antigravity 한도 |
-| 2단: 연결 지점(seam) | 파일당 1~2줄 | LOCAL_PATCHES.md를 보고 재적용 | 독, usage 위젯 슬롯 |
+| 단계                  | 원본 수정               | 원본 업데이트 때               | 예                                    |
+| --------------------- | ----------------------- | ------------------------------ | ------------------------------------- |
+| 0단: 원본의 공개 기능 | 없음                    | 할 일 없음                     | 테마 CSS, MCP 서버, 어시스턴트 스레드 |
+| 1단: 임시 패치        | 원본의 열린 PR을 체리픽 | 원본이 머지하면 삭제           | Antigravity 한도                      |
+| 2단: 연결 지점(seam)  | 파일당 1~2줄            | LOCAL_PATCHES.md를 보고 재적용 | 독, usage 위젯 슬롯                   |
 
 **P2. 기능은 MCP에, 화면은 그 위에.** 에이전트는 호스트(이 PC)에서 돌아간다. 그래서 MCP로 만든 기능은
 데스크톱, 폰, 모든 Claude·Codex 스레드에서 똑같이 쓸 수 있다. 웹 UI는 데스크톱 전용 보조 화면이다.
@@ -61,14 +61,14 @@
 
 ### F1. 상주 어시스턴트
 
-| 항목 | 내용 |
-|---|---|
-| 두뇌 | "Assistant" 전용 T3 스레드. 고정(pin)하고 자동 정리는 Never로 둔다. 기본 프로바이더는 Claude |
-| 도구 | T3 MCP 내장 도구 `t3_thread_list`, `t3_thread_read`, `t3_thread_search`, `t3_thread_send`, `schedule_task` |
-| 주기 작업 | `schedule_task`의 continue 모드(맥락 유지) 또는 fresh_session(매번 새 맥락). 예: 평일 09:00에 지난 24시간 대화 요약, 새 원본 릴리스 알림 |
+| 항목            | 내용                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 두뇌            | "Assistant" 전용 T3 스레드. 고정(pin)하고 자동 정리는 Never로 둔다. 기본 프로바이더는 Claude                                                            |
+| 도구            | T3 MCP 내장 도구 `t3_thread_list`, `t3_thread_read`, `t3_thread_search`, `t3_thread_send`, `schedule_task`                                              |
+| 주기 작업       | `schedule_task`의 continue 모드(맥락 유지) 또는 fresh_session(매번 새 맥락). 예: 평일 09:00에 지난 24시간 대화 요약, 새 원본 릴리스 알림                |
 | 화면 (데스크톱) | 전역 독 플러그인. 슬롯 `chat-layout`(S1). 스레드를 옮겨도 유지되고, 오른쪽에서 열고 닫는다. 단축키는 원본 `registerCommands`로 등록한다(원본 수정 없음) |
-| 독 내용 | 어시스턴트 스레드 대화, 위젯(오늘 요약, usage) |
-| 화면 (폰) | 어시스턴트 스레드 그 자체 |
+| 독 내용         | 어시스턴트 스레드 대화, 위젯(오늘 요약, usage)                                                                                                          |
+| 화면 (폰)       | 어시스턴트 스레드 그 자체                                                                                                                               |
 
 수용 기준
 
@@ -107,17 +107,27 @@
     (`apps/server/src/provider/antigravityUsageLimits.ts`).
   - agy 1.5.x는 이 파일을 만들지 않고, 로그인 정보를 Windows 자격 증명 관리자의 `gemini:antigravity`에 저장한다.
   - 그래서 "Sign in with Google to see Antigravity limits"에서 멈춘다.
-- 조치: P1 [#36733](https://github.com/pingdotgg/t3code/pull/36733)(Windows 자격 증명).
-  P2 [#38957](https://github.com/pingdotgg/t3code/pull/38957)(파일·키링)은 원본에 머지됐으니 다음 정식 릴리스로 올리면 함께 들어온다.
+- 조치: P2 [#38957](https://github.com/pingdotgg/t3code/pull/38957)을 임시 패치로 적용했다. 1.5.x CLI의 로그인 파일,
+  OS 키링, Windows 자격 증명(`gemini:antigravity`)을 읽는다. 원본 main에 머지됐고, 정식 릴리스에 들어가면
+  `delta.mjs sync`가 임시 패치를 뺀다. 이 PC에서 자격 증명을 읽는 것을 확인했다.
+  P1 [#36733](https://github.com/pingdotgg/t3code/pull/36733)은 P2가 대신해서 뺐다.
+- 한계(원본 동작): CLI 로그인에는 OAuth 클라이언트 정보가 없어 T3가 토큰을 갱신하지 못한다. 토큰이 만료되면
+  "Antigravity's saved sign-in has expired"가 뜨고, Antigravity 턴을 한 번 돌리면 CLI가 갱신한다.
 - 선택: P3 [#34036](https://github.com/pingdotgg/t3code/pull/34036), P4 [#31703](https://github.com/pingdotgg/t3code/pull/31703)(토큰 집계)
 - 수용 기준: F2a 위젯과 `/usage` 페이지에 Antigravity 한도가 표시된다.
 
 ### F3. 사이드바 카드 꾸미기
 
-**F3a. 테마 CSS (0단)**
+**F3a. 테마 CSS (0단, M1 구현)**
 
-- 테마 파일은 `delta/plugins/sidebar-style/theme/<id>.json`에 둔다. 설치 스크립트가
-  `~/.t3/userdata/themes/`로 복사하고, 저장 즉시 반영된다.
+- 플러그인 `delta/plugins/sidebar-style/`. 테마 id는 `delta`, 이름은 "Delta"다.
+  - `theme.css`: 카드 CSS. 모든 행은 둥근 모서리와 hover 테두리, 열린 스레드는 왼쪽 청록 막대와 옅은 청록 배경,
+    제목 재생성 중인 행은 반짝임(동작 줄이기 설정이면 끔)
+  - `build.mjs`: 기준 원본의 기본 색(`T3_CODE_LIGHT/DARK_THEME_COLORS`)과 `theme.css`로 `theme/delta.json`을 만든다.
+    색은 원본 기본 테마와 같고, 라이트·다크 모두 지원한다. 원본을 올린 뒤 다시 실행한다.
+  - 설치: `node delta/scripts/delta.mjs themes --install`이 `~/.t3/userdata/themes/`로 복사한다.
+    Settings → Appearance에서 "Delta"를 고르면 적용되고, 파일을 바꾸면 바로 반영된다.
+- 원본 v0.1.10의 테마 스키마(`EnvironmentThemeFile`)로 검사를 통과했다. CSS 한도는 v0.1.10 기준 50,000자다.
 - 형식: `name`, `appearance`, `canvas`+`accent`(또는 `colors`), `css`(최대 100,000자)
 - 안정 선택자
   - 원본이 테스트로 보장: `[data-thread-item]`, `[data-slot="sidebar"]`, `[data-slot="sidebar-inner"]`
@@ -131,27 +141,35 @@
 
 ### F4. 백테스팅·리포팅 MCP
 
-| 항목 | 내용 |
-|---|---|
-| 형태 | Claude Code 플러그인(MCP 서버, 사용법 스킬, `.mcp.json`). 사용자 범위로 설치한다. Codex는 설정에 따로 등록한다 |
-| 위치 | `delta/plugins/backtest/`. 전략과 데이터는 `delta/private/` 또는 별도 비공개 저장소 |
-| 도구 | `backtest_run(strategy, symbols, period, params)` → job_id를 바로 돌려준다 · `backtest_status(job_id)` · `backtest_result(job_id)`(CAGR, MDD, Sharpe, 승률, 거래 수) · `backtest_compare(job_ids)` · `report_build(job_id)` |
-| 실행 방식 | 비동기 작업. 오래 걸리는 계산이 도구 호출 시간 제한에 걸리지 않게 한다 |
-| 리포트 | MCP Apps(`ui://`)로 수익 곡선, 낙폭, 월별 히트맵, 거래 표를 스레드 안에 보여준다(웹·데스크톱·모바일). HTML 파일로도 저장한다 |
-| 권한 | 계산·조회 도구는 read-only로 표시한다. 그래야 MCP App 버튼을 누를 때마다 승인을 묻지 않는다 |
-| 정기 리포트 | `schedule_task`로 주 1회 다시 실행하고 리포트를 만든다. 폰으로 알림이 온다 |
-| 안전 | 계산·조회 전용. 실제 주문 기능은 별도 서버로 분리하고 호출마다 승인을 받는다 |
+| 항목        | 내용                                                                                                                                                                                                                        |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 형태        | Claude Code 플러그인(MCP 서버, 사용법 스킬, `.mcp.json`). 사용자 범위로 설치한다. Codex는 설정에 따로 등록한다                                                                                                              |
+| 위치        | `delta/plugins/backtest/`. 전략과 데이터는 `delta/private/` 또는 별도 비공개 저장소                                                                                                                                         |
+| 도구        | `backtest_run(strategy, symbols, period, params)` → job_id를 바로 돌려준다 · `backtest_status(job_id)` · `backtest_result(job_id)`(CAGR, MDD, Sharpe, 승률, 거래 수) · `backtest_compare(job_ids)` · `report_build(job_id)` |
+| 실행 방식   | 비동기 작업. 오래 걸리는 계산이 도구 호출 시간 제한에 걸리지 않게 한다                                                                                                                                                      |
+| 리포트      | MCP Apps(`ui://`)로 수익 곡선, 낙폭, 월별 히트맵, 거래 표를 스레드 안에 보여준다(웹·데스크톱·모바일). HTML 파일로도 저장한다                                                                                                |
+| 권한        | 계산·조회 도구는 read-only로 표시한다. 그래야 MCP App 버튼을 누를 때마다 승인을 묻지 않는다                                                                                                                                 |
+| 정기 리포트 | `schedule_task`로 주 1회 다시 실행하고 리포트를 만든다. 폰으로 알림이 온다                                                                                                                                                  |
+| 안전        | 계산·조회 전용. 실제 주문 기능은 별도 서버로 분리하고 호출마다 승인을 받는다                                                                                                                                                |
 
 요구 환경: MCP Apps는 Claude Code 2.1.301 이상이 필요하다(현재 2.1.328). Codex도 지원한다.
 그 외 프로바이더에서는 일반 도구 호출로 보인다.
 
 ## 5. 빌드와 실행
 
-- 개발: [docs/operations/development.md](../docs/operations/development.md)를 따른다(Vite+ `vp i`, `vp run dev`).
+- 준비: Vite+(`vp`)를 설치하고(`irm https://vite.plus/ps1 | iex`, M1에서 이 PC에 설치함) `vp i`. `vp`가 원본이 정한
+  Node 26과 pnpm 12를 쓴다. `vp i`를 하면 원본의 pre-commit 훅(포맷, 린트, knip)이 켜진다.
+- 개발: [docs/operations/development.md](../docs/operations/development.md)를 따른다(`vp run dev`).
   개발 서버는 `T3CODE_HOME`을 별도 폴더로 지정해서 실제 `~/.t3` 데이터를 보호한다.
 - 버전: 빌드할 때 `APP_VERSION=$(node delta/scripts/delta.mjs version)`을 넘긴다. 웹, 서버, 데스크톱 패키저가 모두
   이 값을 쓴다. 넘기지 않으면 원본 규칙상 `package.json`의 이전 버전(v0.1.10 기준 `0.1.9`)이 표시된다.
 - 데스크톱 빌드: 웹 UI와 서버가 앱 안에 묶여 있어서, 1·2단 기능은 앱을 직접 빌드해야 적용된다.
+  ```sh
+  V=$(node delta/scripts/delta.mjs version)
+  APP_VERSION=$V node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version $V --output-dir release/delta-$V
+  ```
+  `--target dir`이면 설치 파일 없이 앱 폴더만 만든다. Windows 빌드에는 Rust, Python 3, Visual Studio Build Tools
+  (C++, Windows SDK, x64 Spectre 완화 라이브러리)가 필요하다. 이 PC는 2026-11-20 기준 Spectre 라이브러리만 없다.
 - 공식 자동 업데이트가 포크 빌드를 덮어쓰므로 `T3CODE_DISABLE_AUTO_UPDATE=1`을 반드시 설정한다.
 - 0단 기능(테마, MCP, 어시스턴트 스레드)은 공식 앱에서도 동작한다.
 
@@ -168,18 +186,19 @@
 
 ## 7. 마일스톤
 
-| | 범위 | 상태 |
-|---|---|---|
-| M0 | 포크, 클론, 문서, T3 프로젝트 등록, 원본 추적 도구(`delta.json`, `delta.mjs`) | 완료 |
-| M1 | 원본 최신 정식 릴리스로 동기화, F3a 테마, P1 패치, 동기화 스크립트, 새 원본 알림, 첫 데스크톱 빌드(버전·S4 검증) | |
-| M2 | 플러그인 호스트(`DeltaSlot`, sdk, 오류 경계), S1·S2, F2a usage 위젯 | |
-| M3 | F1 어시스턴트 스레드와 독 | |
-| M4 | F2b usage MCP, F4 백테스트·리포트 MCP | |
+|     | 범위                                                                                                                              | 상태                                                                                                    |
+| --- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| M0  | 포크, 클론, 문서, T3 프로젝트 등록, 원본 추적 도구(`delta.json`, `delta.mjs`)                                                     | 완료                                                                                                    |
+| M1  | 원본 최신 정식 릴리스로 동기화, F3a 테마, Antigravity 패치(P2), S4, 동기화 스크립트, 새 원본 알림, 첫 데스크톱 빌드(버전·S4 검증) | 진행 중: 데스크톱 패키징만 남음(Spectre 라이브러리 필요). 웹·서버·데스크톱 번들 빌드와 버전 주입은 확인 |
+| M2  | 플러그인 호스트(`DeltaSlot`, sdk, 오류 경계), S1·S2, F2a usage 위젯                                                               |                                                                                                         |
+| M3  | F1 어시스턴트 스레드와 독                                                                                                         |                                                                                                         |
+| M4  | F2b usage MCP, F4 백테스트·리포트 MCP                                                                                             |                                                                                                         |
 
 ## 8. 미정 사항
 
 1. F4: 대상 시장, 데이터 소스, 전략 언어
-2. 앱 식별자: 공식 앱과 같은 ID로 대체 설치(권장, `~/.t3` 데이터 공유)할지, 분리해 동시 설치할지
+2. 앱 식별자: 공식 앱과 같은 ID로 대체 설치(권장, `~/.t3` 데이터 공유)할지, 분리해 동시 설치할지.
+   지금 빌드는 앱 ID(`com.t3tools.t3code`)와 제품 이름(`T3 Code`)이 공식 앱과 같아서, 설치 파일을 실행하면 공식 앱을 대체한다
 3. 독 형태: 위에 덮는 오버레이, 또는 채팅 영역을 밀어내는 고정 칼럼(이 경우 seam이 늘어난다)
 4. 어시스턴트의 모델과 실행 주기
 5. F3b를 원본에 PR로 올릴지
