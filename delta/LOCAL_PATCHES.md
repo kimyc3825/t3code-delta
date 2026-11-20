@@ -23,13 +23,17 @@
 
 ## 연결 지점 (seam)
 
-| ID  | 상태 | 파일                                                   | 기준점                                                                  | 변경                                                                 | 용도                        |
-| --- | ---- | ------------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------------------- |
-| S0  | 적용 | `CLAUDE.md`                                            | 파일 끝                                                                 | `@delta/AGENTS.md` 한 줄 추가                                        | Claude가 포크 규칙을 읽는다 |
-| S1  | 예정 | `apps/web/src/routes/_chat.tsx`                        | `ChatRouteLayout`이 반환하는 fragment의 마지막 자식(닫는 `</>` 바로 앞) | `<DeltaSlot name="chat-layout" />`와 import                          | F1 전역 독                  |
-| S2  | 예정 | `apps/web/src/components/sidebar/SidebarChrome.tsx`    | `SidebarChromeFooter`의 `<SidebarFooter>` 첫 자식                       | `<DeltaSlot name="sidebar-footer" />`와 import                       | F2a usage 위젯              |
-| S3  | 선택 | `apps/web/src/components/sidebar/SidebarThreadRow.tsx` | `data-sidebar-row`가 붙은 카드 요소(card·slim 두 곳)                    | `data-status`, `data-provider` 속성                                  | F3b                         |
-| S4  | 적용 | `apps/desktop/src/app/DesktopEnvironment.ts`           | `resolveDesktopAppBranding`이 반환하는 `displayName`                    | 버전이 `+delta.<N>`으로 끝나면 `T3 Code - Delta`, 아니면 원본 그대로 | 창 제목, 메뉴, About        |
+| ID  | 상태 | 파일                                                   | 기준점                                                                   | 변경                                                                         | 용도                           |
+| --- | ---- | ------------------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------ |
+| S0  | 적용 | `CLAUDE.md`                                            | 파일 끝                                                                  | `@delta/AGENTS.md` 한 줄 추가                                                | Claude가 포크 규칙을 읽는다    |
+| S1  | 예정 | `apps/web/src/routes/_chat.tsx`                        | `ChatRouteLayout`이 반환하는 fragment의 마지막 자식(닫는 `</>` 바로 앞)  | `<DeltaSlot name="chat-layout" />`와 import                                  | F1 전역 독                     |
+| S2  | 예정 | `apps/web/src/components/sidebar/SidebarChrome.tsx`    | `SidebarChromeFooter`의 `<SidebarFooter>` 첫 자식                        | `<DeltaSlot name="sidebar-footer" />`와 import                               | F2a usage 위젯                 |
+| S3  | 선택 | `apps/web/src/components/sidebar/SidebarThreadRow.tsx` | `data-sidebar-row`가 붙은 카드 요소(card·slim 두 곳)                     | `data-status`, `data-provider` 속성                                          | F3b                            |
+| S4  | 적용 | `apps/desktop/src/app/DesktopEnvironment.ts`           | `resolveDesktopAppBranding`이 반환하는 `displayName`                     | 버전이 `+delta.<N>`으로 끝나면 `T3 Code - Delta`, 아니면 원본 그대로         | 창 제목, 메뉴, About           |
+| S5  | 적용 | `scripts/build-desktop-artifact.ts`                    | `resolveDesktopProductName` 첫 줄, `createBuildConfig`의 `appId`, import | Delta 버전이면 앱 ID `dev.t3code-delta.desktop`, 제품 이름 `T3 Code - Delta` | 공식 앱과 따로 설치            |
+| S6  | 적용 | `apps/desktop/src/app/DesktopUserData.ts`              | `resolveUserDataPath`의 `names`                                          | Delta 버전이면 Electron 프로필 폴더 `t3code-delta`                           | 창 상태·로그인 분리, 동시 실행 |
+| S7  | 적용 | `apps/desktop/src/app/DesktopEnvironment.ts`           | `resolveDesktopBaseDir`에 넘기는 `t3Home`                                | Delta 버전이고 `T3CODE_HOME`이 없으면 `~/.t3-delta`                          | 대화 데이터 폴더 분리          |
+| S8  | 적용 | `apps/desktop/src/app/DesktopEnvironment.ts`           | `appUserModelId` 기본값                                                  | Delta 버전이면 `dev.t3code-delta.desktop`                                    | 작업 표시줄·알림 분리          |
 
 메모
 
@@ -37,6 +41,9 @@
   자주 바뀌어 seam을 두지 않는다. 그런 에이전트에게는 작업을 줄 때 `delta/AGENTS.md`를 먼저 읽으라고 지시한다.
 - **S1:** v0.1.10 이후 main에서 원본이 같은 자리에 `<GlobalVoiceInputIndicator … />`를 추가했다.
   그 변경이 들어간 태그로 올릴 때 충돌이 나는데, 두 줄 모두 남기면 된다.
+- **S5~S8 (따로 설치):** 모두 버전이 `+delta.<N>`으로 끝날 때만 동작하고, 값은 `apps/desktop/src/delta/identity.ts`에 모았다.
+  원본 테스트와 버전 없는 빌드는 원본 그대로다. 대화는 공식 앱 서버를 Delta의 "Add environment"로 연결해서 본다
+  (한 T3 홈은 서버 하나만 쓸 수 있다). Delta가 설치하는 `t3` CLI는 `~/.t3-delta/bin`에 들어가지만 PATH에서 공식 앱 것이 앞선다.
 - **S4:** 단계 라벨은 contracts의 닫힌 목록(`Alpha | Beta | Dev | Nightly`)이라 건드리지 않는다.
   `displayName`만 바꾼다. 웹은 데스크톱이 주입한 이름을 그대로 쓴다.
   원본 테스트는 `+delta.`가 없는 버전을 쓰므로 그대로 통과한다. `APP_VERSION` 없이 빌드하면 원본 이름이 보여서

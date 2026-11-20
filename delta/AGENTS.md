@@ -8,7 +8,7 @@
 1. **먼저 확인:** `node delta/scripts/delta.mjs status`로 기준 원본과 현재 상태를 본다.
 2. **먼저 읽기:** [ARCHITECTURE.md](ARCHITECTURE.md)(원본 추적·플러그인 구조), [SPEC.md](SPEC.md)(기능 명세),
    [LOCAL_PATCHES.md](LOCAL_PATCHES.md)(연결 지점), [PATCHNOTES.md](PATCHNOTES.md)(원본 버그 수정).
-3. **새 코드 위치:** `delta/` 또는 `apps/web/src/delta/`에만 둔다.
+3. **새 코드 위치:** `delta/`, `apps/web/src/delta/`, `apps/desktop/src/delta/`에만 둔다.
 4. **플러그인 import:** `apps/web/src/delta/plugins/**`는 원본 코드를 `apps/web/src/delta/sdk/`를 통해서만 import한다.
    원본이 바뀌면 sdk 한 곳만 고치기 위해서다.
 5. **원본 파일 수정:** `delta.json`에 등록된 seam(LOCAL_PATCHES.md)과 수정(PATCHNOTES.md)만 고친다.
