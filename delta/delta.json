@@ -28,9 +28,43 @@
     },
     { "id": "S4", "status": "applied", "file": "apps/desktop/src/app/DesktopEnvironment.ts" }
   ],
+  "hotfixes": [
+    {
+      "id": "H1",
+      "status": "applied",
+      "title": "단일 틸드(~)가 취소선이 됨",
+      "issue": 29254,
+      "pr": 29270,
+      "files": [
+        "packages/shared/src/markdownPipeline.ts",
+        "packages/shared/src/markdownPipeline.test.ts",
+        "apps/web/src/components/chat/MessagesTimeline.browser.test.tsx"
+      ],
+      "watch": [
+        "apps/web/src/components/ChatMarkdown.tsx",
+        "apps/web/src/components/chat/TimelineAssistantRows.tsx"
+      ],
+      "keywords": ["tilde", "strikethrough"]
+    }
+  ],
   "pending": [
-    { "id": "P2", "pr": 38957, "status": "applied" },
-    { "id": "P3", "pr": 34036, "status": "optional" },
-    { "id": "P4", "pr": 31703, "status": "optional" }
+    {
+      "id": "P2",
+      "pr": 38957,
+      "status": "applied",
+      "title": "Antigravity 한도: 1.5.x CLI 로그인(파일·키링·Windows 자격 증명) 읽기"
+    },
+    {
+      "id": "P3",
+      "pr": 34036,
+      "status": "optional",
+      "title": "Antigravity 사용량: 생성 1회만 집계"
+    },
+    {
+      "id": "P4",
+      "pr": 31703,
+      "status": "optional",
+      "title": "Antigravity 사용량: 캐시 토큰 이중 집계 수정"
+    }
   ]
 }
