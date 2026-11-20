@@ -39,6 +39,13 @@ Common options: --offline skips network reads (upstream tags, issue and pull req
 
 const cliPath = NodeURL.fileURLToPath(import.meta.url);
 const command = positional[0] ?? "status";
+const midSync = command === "sync" && (args.includes("--continue") || args.includes("--abort"));
+if (manifest === null && !midSync && command !== "__edit-todo" && command !== "help") {
+  fail(
+    "delta/delta.json이 없다. 동기화 리베이스가 멈춘 중이라면 충돌 안내에 나온 " +
+      "`node <git 폴더>/delta-sync-tool/delta.mjs sync --continue` 또는 `--abort`를 쓴다.",
+  );
+}
 
 function prSuffix(item, latest) {
   if (item.prState !== "merged") return item.prState ?? "?";
@@ -134,7 +141,7 @@ if (command === "__edit-todo") {
 } else if (command === "review") {
   review();
 } else if (command === "sync") {
-  if (args.includes("--continue")) syncFinish(cliPath);
+  if (args.includes("--continue")) syncFinish();
   else if (args.includes("--abort")) syncAbort();
   else syncStart(cliPath);
 } else if (command === "themes") {

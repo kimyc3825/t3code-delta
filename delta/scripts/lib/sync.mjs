@@ -23,6 +23,7 @@ import {
   repoRoot,
   reviewPath,
   syncStatePath,
+  syncToolDir,
   writeManifest,
 } from "./core.mjs";
 
@@ -38,6 +39,22 @@ export function editTodo(todoPath) {
         : line;
     });
   NodeFS.writeFileSync(todoPath, todo.join("\n"));
+}
+
+/** Copies this tool into the git directory and returns the copy's entry point. */
+function copyTool(cliPath) {
+  const toolDir = syncToolDir();
+  const scriptsDir = NodePath.dirname(cliPath);
+  NodeFS.rmSync(toolDir, { recursive: true, force: true });
+  NodeFS.mkdirSync(NodePath.join(toolDir, "lib"), { recursive: true });
+  NodeFS.copyFileSync(cliPath, NodePath.join(toolDir, "delta.mjs"));
+  for (const name of NodeFS.readdirSync(NodePath.join(scriptsDir, "lib"))) {
+    NodeFS.copyFileSync(
+      NodePath.join(scriptsDir, "lib", name),
+      NodePath.join(toolDir, "lib", name),
+    );
+  }
+  return NodePath.join(toolDir, "delta.mjs");
 }
 
 export function syncStart(cliPath) {
@@ -117,7 +134,8 @@ export function syncStart(cliPath) {
   NodeFS.writeFileSync(syncStatePath(), JSON.stringify(state, null, 2));
 
   const toPosix = (path) => path.replaceAll("\\", "/");
-  const editor = `"${toPosix(process.execPath)}" "${toPosix(cliPath)}" __edit-todo`;
+  const toolCli = toPosix(copyTool(cliPath));
+  const editor = `"${toPosix(process.execPath)}" "${toolCli}" __edit-todo`;
   const ok = gitInherit(
     ["rebase", "-i", "--empty=drop", "--onto", target, manifest.upstream.commit, branch],
     {
@@ -133,18 +151,21 @@ export function syncStart(cliPath) {
       [
         "",
         "리베이스가 충돌로 멈췄다. rerere가 기억한 해결은 이미 적용됐다.",
-        "1. delta/LOCAL_PATCHES.md의 기준점대로 충돌을 고친다. 생성 파일은 원본 것을 받고 다시 만든다.",
-        "2. git add <파일> 후 git rebase --continue (끝날 때까지 반복)",
-        "3. node delta/scripts/delta.mjs sync --continue",
-        "그만두려면: node delta/scripts/delta.mjs sync --abort",
+        "Δ 커밋은 스택 맨 위라 아직 다시 쌓이지 않았다. 그래서 지금 작업 폴더에는 delta/가 없을 수 있다.",
+        `1. 규칙 문서는 백업 브랜치에서 읽는다: git show ${backup}:delta/LOCAL_PATCHES.md`,
+        `   (직접 수정이면 git show ${backup}:delta/PATCHNOTES.md)`,
+        "2. 기준점대로 충돌을 고치고 git add <파일>, git rebase --continue (끝날 때까지 반복)",
+        "   생성 파일은 원본 것을 받고 다시 만든다.",
+        `3. node "${toolCli}" sync --continue`,
+        `그만두려면: node "${toolCli}" sync --abort`,
       ].join("\n"),
     );
     process.exit(1);
   }
-  syncFinish(cliPath);
+  syncFinish();
 }
 
-export function syncFinish(cliPath) {
+export function syncFinish() {
   if (!NodeFS.existsSync(syncStatePath())) fail("진행 중인 동기화가 없다.");
   if (rebaseInProgress())
     fail("리베이스가 아직 끝나지 않았다. 충돌을 고치고 `git rebase --continue`부터 끝낸다.");
@@ -176,10 +197,15 @@ export function syncFinish(cliPath) {
   }
   if (!gitInherit(["commit", "--quiet", "-m", body, "--", ...paths])) fail("커밋에 실패했다.");
   NodeFS.rmSync(syncStatePath());
+  NodeFS.rmSync(syncToolDir(), { recursive: true, force: true });
 
   const after = NodeChildProcess.execFileSync(
     process.execPath,
-    [cliPath, "status", ...(offline ? ["--offline"] : [])],
+    [
+      NodePath.join(repoRoot, "delta/scripts/delta.mjs"),
+      "status",
+      ...(offline ? ["--offline"] : []),
+    ],
     { cwd: repoRoot, encoding: "utf8" },
   );
   console.log(`\n${after}`);
@@ -201,6 +227,7 @@ export function syncFinish(cliPath) {
 
 export function syncAbort() {
   if (rebaseInProgress()) gitInherit(["rebase", "--abort"]);
+  NodeFS.rmSync(syncToolDir(), { recursive: true, force: true });
   if (NodeFS.existsSync(syncStatePath())) {
     const state = JSON.parse(NodeFS.readFileSync(syncStatePath(), "utf8"));
     NodeFS.rmSync(syncStatePath());

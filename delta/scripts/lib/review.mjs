@@ -265,7 +265,7 @@ export function review() {
 
   const summary = [
     `원본 업데이트 검토: ${base} → ${target}${stableTarget ? "" : " (미리 보기)"}`,
-    `  원본 커밋 ${commitCount}개, 바뀐 파일 ${changedFiles.length}개, 릴리스 ${releases.map((r) => r.tag).join(", ")}`,
+    `  원본 커밋 ${commitCount}개, 바뀐 파일 ${changedFiles.length}개, 릴리스 ${releases.map((r) => r.tag).join(", ") || "없음"}`,
     ...fixRows.map(
       ({ fix, related, verdict }) =>
         `  ${fix.id} ${fix.title ?? ""}: ${verdict} (관련 커밋 ${related.length}개)`,

