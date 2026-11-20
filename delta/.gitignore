@@ -1,2 +1,3 @@
-# 개인 데이터: 전략, 거래 데이터, 토큰, 대화 내보내기. 이 저장소는 공개다.
 private/
+# Previews of nightly builds (review --nightly) are not records.
+reviews/*-nightly.*

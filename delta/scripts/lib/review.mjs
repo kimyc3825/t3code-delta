@@ -29,8 +29,9 @@ const issueLink = (issue) => `[#${issue}](${UPSTREAM_URL}/issues/${issue})`;
 // Upstream subjects end with a pull request reference; bare references here would link to the fork.
 const linkSubject = (subject) => subject.replace(/\(#(\d+)\)/g, (_, pr) => `(${prLink(pr)})`);
 
-function commitsIn(range, extra) {
-  const output = git("log", "--format=%h%x09%s", ...extra, range);
+function commitsIn(range, options, paths = []) {
+  const pathArgs = paths.length ? ["--", ...paths] : [];
+  const output = git("log", "--format=%h%x09%s", ...options, range, ...pathArgs);
   return (output ?? "")
     .split("\n")
     .filter(Boolean)
@@ -39,7 +40,7 @@ function commitsIn(range, extra) {
       return { hash, subject: rest.join("\t") };
     });
 }
-const touching = (range, files) => (files.length ? commitsIn(range, ["--", ...files]) : []);
+const touching = (range, files) => (files.length ? commitsIn(range, [], files) : []);
 const mentioning = (range, keywords) =>
   keywords.length ? commitsIn(range, ["-i", ...keywords.map((k) => `--grep=${k}`)]) : [];
 
@@ -78,11 +79,12 @@ function toolchain(rev) {
   };
 }
 
-function fixVerdict(fix, related) {
+function fixVerdict(fix, byWord, byFile) {
   if (fix.prState === "merged" && fix.inLatest) return "원본 PR이 새 태그에 들어 있음 → 빼기 권장";
   if (fix.issueState === "closed" && fix.issueReason === "completed")
     return "원본 이슈가 해결로 닫힘 → 새 태그에서 증상을 확인하고 빼기 검토";
-  if (related > 0) return "관련 원본 변경 있음 → 내용 확인 후 결정";
+  if (byWord.length > 0) return "같은 문제를 다룬 원본 커밋이 있음 → 내용 확인 후 결정";
+  if (byFile.length > 0) return "관련 파일만 바뀜 → 유지 (동기화 때 충돌만 확인)";
   return "관련 변경 없음 → 유지";
 }
 
@@ -132,8 +134,10 @@ export function review() {
     const files = [...new Set([...(fix.files ?? []), ...(fix.watch ?? [])])];
     const byFile = touching(range, files);
     const byWord = mentioning(range, fix.keywords ?? []);
-    const related = [...new Map([...byFile, ...byWord].map((c) => [c.hash, c])).values()];
-    return { fix, related, verdict: fixVerdict(fix, related.length) };
+    const wordHashes = new Set(byWord.map((c) => c.hash));
+    const fileOnly = byFile.filter((c) => !wordHashes.has(c.hash));
+    const related = [...byWord, ...fileOnly];
+    return { fix, byWord, fileOnly, related, verdict: fixVerdict(fix, byWord, fileOnly) };
   });
   const seamRows = seams.map((seam) => ({
     seam,
@@ -179,8 +183,15 @@ export function review() {
       );
     }
     lines.push("");
-    for (const { fix, related } of fixRows.filter((row) => row.related.length > 0)) {
-      lines.push(`**${fix.id} 관련 원본 커밋**`, "", ...commitList(related), "");
+    for (const { fix, byWord, fileOnly } of fixRows) {
+      if (byWord.length > 0) {
+        const words = (fix.keywords ?? []).join(", ");
+        lines.push(`**${fix.id}: 같은 문제를 다룬 원본 커밋 (키워드 ${words})**`, "");
+        lines.push(...commitList(byWord), "");
+      }
+      if (fileOnly.length > 0) {
+        lines.push(`**${fix.id}: 관련 파일을 바꾼 원본 커밋**`, "", ...commitList(fileOnly), "");
+      }
     }
   }
 
