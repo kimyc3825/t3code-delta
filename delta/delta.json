@@ -9,14 +9,27 @@
   },
   "seams": [
     { "id": "S0", "status": "applied", "file": "CLAUDE.md", "contains": "@delta/AGENTS.md" },
-    { "id": "S1", "status": "planned", "file": "apps/web/src/routes/_chat.tsx", "slot": "chat-layout" },
-    { "id": "S2", "status": "planned", "file": "apps/web/src/components/sidebar/SidebarChrome.tsx", "slot": "sidebar-footer" },
-    { "id": "S3", "status": "optional", "file": "apps/web/src/components/sidebar/SidebarThreadRow.tsx" },
-    { "id": "S4", "status": "planned", "file": "apps/desktop/src/app/DesktopEnvironment.ts" }
+    {
+      "id": "S1",
+      "status": "planned",
+      "file": "apps/web/src/routes/_chat.tsx",
+      "slot": "chat-layout"
+    },
+    {
+      "id": "S2",
+      "status": "planned",
+      "file": "apps/web/src/components/sidebar/SidebarChrome.tsx",
+      "slot": "sidebar-footer"
+    },
+    {
+      "id": "S3",
+      "status": "optional",
+      "file": "apps/web/src/components/sidebar/SidebarThreadRow.tsx"
+    },
+    { "id": "S4", "status": "applied", "file": "apps/desktop/src/app/DesktopEnvironment.ts" }
   ],
   "pending": [
-    { "id": "P1", "pr": 36733, "status": "planned" },
-    { "id": "P2", "pr": 38957, "status": "planned" },
+    { "id": "P2", "pr": 38957, "status": "applied" },
     { "id": "P3", "pr": 34036, "status": "optional" },
     { "id": "P4", "pr": 31703, "status": "optional" }
   ]
