@@ -44,6 +44,13 @@ import { loadRepoEnv } from "./lib/public-config.ts";
 import { selectDesktopRuntimeExternalDependencies } from "./lib/desktop-external-packages.ts";
 import { resolveCatalogDependencies } from "./lib/resolve-catalog.ts";
 import { resolveTaggedSourceVersion } from "./lib/tagged-source-version.ts";
+// [delta-seam:S5]
+import {
+  DELTA_APP_ID,
+  DELTA_PACKAGE_NAME,
+  DELTA_PRODUCT_NAME,
+  isDeltaBuild,
+} from "../apps/desktop/src/delta/identity.ts";
 
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -2766,6 +2773,7 @@ export function resolvePackageManagerUserAgent(packageManager: string): string {
 }
 
 export function resolveDesktopProductName(version: string): string {
+  if (isDeltaBuild(version)) return DELTA_PRODUCT_NAME; // [delta-seam:S5]
   return resolveDesktopUpdateChannel(version) === "nightly"
     ? "T3 Code (Nightly)"
     : (desktopPackageJson.productName ?? "T3 Code");
@@ -2789,7 +2797,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
 ) {
   const buildConfig: Record<string, unknown> = {
     afterPack: (yield* Path.Path).join(yield* RepoRoot, "scripts/prepare-server-compile-cache.cjs"),
-    appId: DESKTOP_APP_ID,
+    appId: isDeltaBuild(version) ? DELTA_APP_ID : DESKTOP_APP_ID, // [delta-seam:S5]
     productName: resolveDesktopProductName(version),
     artifactName: "T3-Code-${version}-${arch}.${ext}",
     electronLanguages: [...DESKTOP_ELECTRON_LANGUAGES],
@@ -3914,7 +3922,7 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
       ? path.join(stageAppDir, WINDOWS_SERVER_RESOURCE_SOURCE_DIR, WINDOWS_SERVER_ASAR_RESOURCE)
       : undefined;
   const stagePackageJson: StagePackageJson = {
-    name: "t3code",
+    name: isDeltaBuild(appVersion) ? DELTA_PACKAGE_NAME : "t3code", // [delta-seam:S5]
     version: appVersion,
     buildVersion: appVersion,
     t3codeCommitHash: commitHash,
