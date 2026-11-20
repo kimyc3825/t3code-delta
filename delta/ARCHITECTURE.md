@@ -89,13 +89,13 @@ apps/web/src/delta/
 
 **플러그인 부분별 원본 접촉**
 
-| 부분              | 실행 위치              | 원본 접촉        | 예                         |
-| ----------------- | ---------------------- | ---------------- | -------------------------- |
-| theme             | T3 테마 로더           | 없음 (공개 기능) | F3a 사이드바 꾸미기        |
-| mcp               | 별도 프로세스          | 없음 (공개 기능) | F2b usage MCP, F4 백테스트 |
-| web               | 앱 번들 (빌드 때 포함) | 슬롯 + sdk       | F1 독, F2a usage 위젯      |
-| T3 서버 내부 확장 | 쓰지 않음              | —                | MCP로 대신한다             |
-| 원본 버그 수정    | 서버·웹                | pending 패치     | F2c Antigravity 한도       |
+| 부분              | 실행 위치              | 원본 접촉                                                      | 예                                |
+| ----------------- | ---------------------- | -------------------------------------------------------------- | --------------------------------- |
+| theme             | T3 테마 로더           | 없음 (공개 기능)                                               | F3a 사이드바 꾸미기               |
+| mcp               | 별도 프로세스          | 없음 (공개 기능)                                               | F2b usage MCP, F4 백테스트        |
+| web               | 앱 번들 (빌드 때 포함) | 슬롯 + sdk                                                     | F1 독, F2a usage 위젯             |
+| T3 서버 내부 확장 | 쓰지 않음              | —                                                              | MCP로 대신한다                    |
+| 원본 버그 수정    | 서버·웹                | 직접 수정(H) 또는 임시 패치(P). [PATCHNOTES.md](PATCHNOTES.md) | H1 단일 틸드, P2 Antigravity 한도 |
 
 **원본이 바뀔 때 무엇이 깨지고 어디서 고치나**
 
@@ -119,33 +119,50 @@ apps/web/src/delta/
   버그가 원본 것인지 Δ 것인지 가를 때 쓴다.
 - **규칙 검사:** `delta.mjs check`가 `apps/web/src/delta/plugins/**`에서 sdk를 거치지 않은 원본 import를 찾아낸다(M2에서 추가).
 
-**업데이트 절차** (`delta.mjs sync`)
+**업데이트 절차: 검토하고 올린다** (`delta.mjs review` → `delta.mjs sync`)
 
 ```sh
-node delta/scripts/delta.mjs sync --dry-run   # 계획만 본다
-node delta/scripts/delta.mjs sync             # 최신 정식 릴리스로. 태그를 직접 줄 수도 있다: sync v0.1.11
+node delta/scripts/delta.mjs review            # 최신 정식 릴리스를 검토한다. --nightly는 다음 릴리스 미리 보기
+#  → delta/reviews/<기준>..<새 태그>.md를 읽고, 직접 수정(H)마다 유지할지 정한다
+node delta/scripts/delta.mjs sync --dry-run    # 계획만 본다
+node delta/scripts/delta.mjs sync              # 검토한 태그로 올린다
 ```
 
-스크립트가 하는 일
+`review`가 만드는 보고서
 
-1. 새 태그를 upstream에서 가져온다(이미 로컬에 있으면 그대로 쓴다).
-2. 임시 패치마다 원본 PR의 머지 커밋이 **새 태그에 들어 있는지** 확인하고, 들어 있는 것만 스택에서 뺀다.
-   원본 main에 머지됐어도 태그에 없으면 남긴다. 포크는 정식 릴리스 태그 위에 빌드하기 때문이다.
-3. 백업 브랜치 `backup/<브랜치>-<이전 태그>-r<리비전>`을 만든다.
-4. `git rebase --onto <새 태그> <이전 기준 커밋>`으로 스택을 다시 쌓는다. rerere가 기억한 충돌 해결은 자동으로 다시 적용된다.
-5. 충돌로 멈추면 LOCAL_PATCHES.md의 기준점대로 고치고 `git rebase --continue`, 끝나면 `delta.mjs sync --continue`.
-   그만두려면 `delta.mjs sync --abort`.
-6. `delta.json`의 `upstream`을 새 태그·커밋으로, `revision`을 1로 바꾸고, 뺀 임시 패치를 목록에서 지운 뒤
+1. 원본에서 바뀐 것: 범위 안 정식 릴리스마다 원본 릴리스 노트의 요약, 원본 커밋 수와 바뀐 파일 수
+2. Delta에 미치는 영향
+   - 직접 수정(H): 원본 이슈·PR 상태, 같은 문제를 다룬 원본 커밋(키워드), 관련 파일을 바꾼 원본 커밋, 판단
+   - 임시 패치(P): 원본 PR이 새 태그에 들어 있는지 → 자동으로 빠지는지
+   - seam: 원본 파일을 바꾼 커밋 수, 파일이 없어졌는지 → 충돌 가능성
+   - 플러그인: `plugin.json`의 `watch`에 적은 원본 파일을 바꾼 커밋
+   - 빌드 도구: Node, pnpm, Electron 버전 변화
+3. 결정할 것: 체크리스트
+
+`sync`가 하는 일
+
+1. 그 태그의 검토 보고서가 없으면 멈춘다. **검토 없이는 올리지 않는다.**
+2. 새 태그를 upstream에서 가져온다(이미 로컬에 있으면 그대로 쓴다).
+3. 뺄 커밋을 정한다. 임시 패치는 원본 PR의 머지 커밋이 **새 태그에 들어 있을 때만** 뺀다(main 머지만으로는 남긴다).
+   직접 수정은 `delta.json`에서 `retired`로 표시한 것만 뺀다.
+4. 백업 브랜치 `backup/<브랜치>-<이전 태그>-r<리비전>`을 만들고, 도구를 git 폴더(`delta-sync-tool`)에 복사한다.
+   Δ 커밋은 스택 맨 위라 충돌로 멈춘 동안에는 `delta/`가 작업 폴더에 없을 수 있기 때문이다.
+5. `git rebase --onto <새 태그> <이전 기준 커밋>`으로 스택을 다시 쌓는다. rerere가 기억한 충돌 해결은 자동으로 다시 적용된다.
+6. 충돌로 멈추면 안내대로 고치고 `git rebase --continue`, 끝나면 `node <git 폴더>/delta-sync-tool/delta.mjs sync --continue`.
+   그만두려면 같은 경로로 `--abort`. 규칙 문서는 백업 브랜치에서 읽는다.
+7. `delta.json`의 `upstream`과 `revision`(1로)을 바꾸고, 뺀 수정을 목록에서 지운 뒤 보고서와 함께
    `delta: sync to upstream <태그>`로 커밋한다.
-7. 상태를 다시 보여 주고 남은 일을 출력한다.
 
 사람(또는 에이전트)이 할 일
 
-- 뺀 임시 패치를 LOCAL_PATCHES.md의 "지난 임시 패치"로 옮긴다.
+- 뺀 수정을 PATCHNOTES.md의 "지난 수정"으로 옮기고, 보고서를 "검토 기록"에 링크한다.
 - `vp i`, `vp run check:changed`. 플러그인은 모두 "재검증 필요"로 뜬다. 플러그인마다 동작을 확인하고
   `testedUpstream`을 새 태그로 올린다. 테마 플러그인은 `build.mjs`로 다시 만든다(원본 기본 색을 따라가기 위해).
 - `git push --force-with-lease origin delta`, `gh repo sync kimyc3825/t3code-delta -b main`
-- 충돌을 스스로 못 풀면 T3 스레드의 AI 에이전트에게 LOCAL_PATCHES.md 기준 재적용을 맡긴다.
+- 충돌을 스스로 못 풀면 T3 스레드의 AI 에이전트에게 LOCAL_PATCHES.md·PATCHNOTES.md 기준 재적용을 맡긴다.
+
+2026-11-20에 가짜 태그(원본 nightly 커밋, 원본 커밋 634개 앞)로 전체 흐름을 시험했다. 검토 없는 sync 거부,
+P2 자동 제외, retired H1 제외, H1 유지 시 테스트 파일 충돌과 복사된 도구로 `--continue`·`--abort`까지 확인했다.
 
 ## 4. PR #33606 검토
 

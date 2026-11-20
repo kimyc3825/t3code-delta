@@ -1,20 +1,25 @@
 # LOCAL_PATCHES: 원본 수정 목록
 
-원본(pingdotgg/t3code) 파일을 건드리는 변경은 모두 여기에 등록한다. 원본 업데이트로 리베이스할 때
-이 문서가 기준이다. **여기에 없는 원본 수정은 버그로 본다.**
+원본(pingdotgg/t3code) 파일을 건드리는 변경은 모두 등록한다. 원본 업데이트로 리베이스할 때
+이 문서가 기준이다. **등록되지 않은 원본 수정은 버그로 본다.**
+
+- 기능 확장을 위한 **연결 지점(seam)** 은 이 문서에 둔다.
+- 원본 버그를 고치는 **수정(직접 수정 H, 임시 패치 P)** 은 원본이 언젠가 고칠 수 있으므로
+  [PATCHNOTES.md](PATCHNOTES.md)에 따로 두고 원본을 올릴 때마다 검토한다.
 
 - 기계가 읽는 목록은 [delta.json](delta.json)이다. 이 문서는 사람과 AI 에이전트를 위한 설명이다.
   둘이 다르면 `delta.json`을 기준으로 이 문서를 고친다.
 - 현재 상태 확인: `node delta/scripts/delta.mjs status`
-- 규칙 검사: `node delta/scripts/delta.mjs check` (등록 안 된 seam 표시, 누락된 seam, 커밋 규칙 위반을 잡는다)
+- 규칙 검사: `node delta/scripts/delta.mjs check` (등록 안 된 seam·수정 표시, 누락된 표시, 커밋 규칙 위반을 잡는다)
 
 ## 규칙
 
 - 연결 지점(seam)은 파일당 import 1줄과 사용 1줄을 목표로 한다. 로직은 `apps/web/src/delta/`에 둔다.
-- 원본 파일에서 고친 줄에는 `[delta-seam:<ID>]` 주석을 단다. 주석을 달 수 없는 파일(예: `CLAUDE.md`)은
+- 원본 파일에서 고친 줄에는 `[delta-seam:<ID>]`(직접 수정은 `[delta-fix:<ID>]`) 주석을 단다. 주석을 달 수 없는 파일(예: `CLAUDE.md`)은
   `delta.json`의 `contains`로 확인한다.
 - 기준점은 줄 번호가 아니라 의미(함수, JSX 요소)로 적는다. 원본이 줄을 옮겨도 다시 찾을 수 있게 하기 위해서다.
-- 커밋은 seam 하나당 하나, 메시지는 `seam(<ID>): …`로 쓴다. 임시 패치는 `pending(#<PR>): …`로 쓴다.
+- 커밋은 seam 하나당 하나, 메시지는 `seam(<ID>): …`로 쓴다. 수정은 `hotfix(<ID>): …`, `pending(#<PR>): …`다.
+- 스택 순서는 기준 태그부터 pending → hotfix → seam → delta다.
 
 ## 연결 지점 (seam)
 
@@ -37,23 +42,9 @@
   원본 테스트는 `+delta.`가 없는 버전을 쓰므로 그대로 통과한다. `APP_VERSION` 없이 빌드하면 원본 이름이 보여서
   잘못된 빌드를 바로 알 수 있다. 데이터 폴더(`t3code-v2`)와 Electron 앱 이름(`T3 Code Beta`)은 바뀌지 않는다.
 
-## 임시 패치 (pending)
+## 수정 (hotfix, pending)
 
-| ID  | 원본 PR                                                  | 상태 | 내용                                                                                             | 메모                                                                                       |
-| --- | -------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| P2  | [#38957](https://github.com/pingdotgg/t3code/pull/38957) | 적용 | Antigravity 한도: 1.5.x CLI의 로그인 파일, OS 키링, Windows 자격 증명(`gemini:antigravity`) 읽기 | 원본 main에 2026-11-20 머지(`5283f33ca9`), 정식 릴리스 대기. 이 PC에서 자격 증명 읽기 확인 |
-| P3  | [#34036](https://github.com/pingdotgg/t3code/pull/34036) | 선택 | Antigravity 사용량: 생성 1회만 집계                                                              |                                                                                            |
-| P4  | [#31703](https://github.com/pingdotgg/t3code/pull/31703) | 선택 | Antigravity 사용량: 캐시 토큰 이중 집계 수정                                                     |                                                                                            |
-
-임시 패치는 원본 main에 머지돼도 **정식 릴리스 태그에 들어갈 때까지** 유지한다. `delta.mjs status`가
-`원본 merged, 정식 릴리스 대기` / `… v0.1.x에 포함 → 동기화 때 빠짐`으로 보여 주고, `delta.mjs sync`가 새 태그에
-들어간 패치를 자동으로 뺀다.
-
-### 지난 임시 패치
-
-| ID  | 원본 PR                                                  | 뺀 날      | 이유                                                                         |
-| --- | -------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
-| P1  | [#36733](https://github.com/pingdotgg/t3code/pull/36733) | 2026-11-20 | P2가 Windows 자격 증명 읽기(`CredReadW`)까지 포함해서 불필요. 적용한 적 없음 |
+[PATCHNOTES.md](PATCHNOTES.md)를 본다. 직접 수정 H1(단일 틸드), 임시 패치 P2(Antigravity 한도)가 적용돼 있다.
 
 ## 생성 파일
 
@@ -64,10 +55,13 @@
 
 ## 리베이스 재적용 절차 (AI 에이전트용)
 
-`node delta/scripts/delta.mjs sync`가 리베이스를 시작한다. 충돌로 멈추면 아래 절차로 고치고
-`git rebase --continue`를 끝까지 한 다음 `node delta/scripts/delta.mjs sync --continue`를 실행한다.
+`node delta/scripts/delta.mjs review` 뒤에 `node delta/scripts/delta.mjs sync`가 리베이스를 시작한다.
+충돌로 멈추면 아래 절차로 고치고 `git rebase --continue`를 끝까지 한 다음, 충돌 안내에 나온
+`node <git 폴더>/delta-sync-tool/delta.mjs sync --continue`를 실행한다.
+Δ 커밋은 스택 맨 위라 충돌 중에는 `delta/`가 작업 폴더에 없을 수 있다. 그래서 이 문서와 PATCHNOTES.md는
+백업 브랜치에서 읽는다: `git show backup/delta-<이전 태그>-r<리비전>:delta/LOCAL_PATCHES.md`
 
-1. `delta.json`에서 상태가 `applied`인 항목만 대상으로 한다.
+1. `delta.json`에서 상태가 `applied`인 항목만 대상으로 한다. 직접 수정의 충돌은 PATCHNOTES.md의 "알려진 충돌"을 먼저 본다.
 2. 각 seam의 기준점 설명으로 새 위치를 찾고, 같은 의도로 최소한만 고친다. 줄 번호에 기대지 않는다.
 3. 기준점 자체가 사라졌으면(파일 이동·삭제), 가장 가까운 대체 위치를 찾고 `delta.json`과 이 표를 갱신한다.
 4. `node delta/scripts/delta.mjs check`와 `vp run check:changed`가 통과해야 한다.

@@ -24,16 +24,17 @@ pending     P1 #36733 예정(원본 open) · …
 
 ## 명령
 
-| 명령                                            | 하는 일                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------- |
-| `node delta/scripts/delta.mjs status`           | 기준 원본, 새 정식 릴리스, 커밋 스택, seam, 임시 패치, 플러그인 상태 |
-| `node delta/scripts/delta.mjs check`            | 규칙 위반이 있으면 종료 코드 1. 커밋 전에 실행한다                   |
-| `node delta/scripts/delta.mjs version`          | 빌드 버전(`APP_VERSION`에 넣는 값)                                   |
-| `node delta/scripts/delta.mjs sync [--dry-run]` | 새 정식 릴리스로 스택을 다시 쌓고, 새 태그에 들어간 임시 패치를 뺀다 |
-| `node delta/scripts/delta.mjs themes --install` | 플러그인 테마를 T3 테마 폴더에 설치한다                              |
-| `node delta/scripts/delta.mjs help`             | 전체 사용법                                                          |
+| 명령                                              | 하는 일                                                                                |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `node delta/scripts/delta.mjs status`             | 기준 원본, 새 정식 릴리스, 커밋 스택, seam, 수정(H·P), 플러그인 상태                   |
+| `node delta/scripts/delta.mjs check`              | 규칙 위반이 있으면 종료 코드 1. 커밋 전에 실행한다                                     |
+| `node delta/scripts/delta.mjs version`            | 빌드 버전(`APP_VERSION`에 넣는 값)                                                     |
+| `node delta/scripts/delta.mjs review [--nightly]` | 원본 업데이트 검토 보고서(`delta/reviews/`): 원본 릴리스 요약, 수정·seam·플러그인 영향 |
+| `node delta/scripts/delta.mjs sync [--dry-run]`   | 검토한 정식 릴리스로 스택을 다시 쌓고, 원본이 고친 수정을 뺀다                         |
+| `node delta/scripts/delta.mjs themes --install`   | 플러그인 테마를 T3 테마 폴더에 설치한다                                                |
+| `node delta/scripts/delta.mjs help`               | 전체 사용법                                                                            |
 
-새 정식 릴리스가 나오면 T3 예약 작업 "Delta 새 원본 알림"이 매일 09:00에 알려 준다.
+새 정식 릴리스가 나오면 T3 예약 작업 "Delta 새 원본 알림"이 매일 09:00에 검토 보고서를 만들어 알려 준다.
 
 ## 문서
 
@@ -41,7 +42,8 @@ pending     P1 #36733 예정(원본 open) · …
 | ------------------------------------ | -------------------------------------------------------------------- |
 | [ARCHITECTURE.md](ARCHITECTURE.md)   | 원본 추적과 플러그인 구조, 원본 코드베이스 검토 결과, PR #33606 검토 |
 | [SPEC.md](SPEC.md)                   | 이름, 목표, 기능 명세(F1~F4), 빌드, 보안, 마일스톤                   |
-| [LOCAL_PATCHES.md](LOCAL_PATCHES.md) | 원본 파일 수정 목록. 원본 업데이트 때 기준                           |
+| [LOCAL_PATCHES.md](LOCAL_PATCHES.md) | 원본 파일의 연결 지점(seam) 목록. 원본 업데이트 때 기준              |
+| [PATCHNOTES.md](PATCHNOTES.md)       | 원본 버그 수정(직접 수정 H, 임시 패치 P). 원본을 올릴 때마다 검토    |
 | [AGENTS.md](AGENTS.md)               | 이 저장소에서 일하는 AI 에이전트 규칙                                |
 
 ## 브랜치
