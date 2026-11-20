@@ -403,11 +403,20 @@ function writeManifest(next) {
           .map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`)
           .join(", ")} }`
       : JSON.stringify(value);
+  // Same shape as the repo formatter (vp fmt, 100 columns), so its pre-commit run changes nothing.
+  const item = (value) => {
+    const line = `    ${inline(value)}`;
+    if (line.length + 1 <= 100 || !value || typeof value !== "object") return line;
+    const inner = Object.entries(value).map(
+      ([k, v]) => `      ${JSON.stringify(k)}: ${JSON.stringify(v)}`,
+    );
+    return `    {\n${inner.join(",\n")}\n    }`;
+  };
   const field = ([key, value]) => {
     if (Array.isArray(value)) {
       return value.length === 0
         ? `  ${JSON.stringify(key)}: []`
-        : `  ${JSON.stringify(key)}: [\n${value.map((item) => `    ${inline(item)}`).join(",\n")}\n  ]`;
+        : `  ${JSON.stringify(key)}: [\n${value.map(item).join(",\n")}\n  ]`;
     }
     if (value && typeof value === "object") {
       const inner = Object.entries(value).map(
