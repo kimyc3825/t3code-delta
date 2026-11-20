@@ -207,3 +207,5 @@ M1에서 1~7을 스크립트로 묶는다. 실패하면 T3 `schedule_task`로 AI
   저장소 전용 배포 키(`~/.ssh/t3code-delta_deploy`)를 지정한다.
 - 원격 주소는 표준 `git@github.com:…` 형식으로 둔다. T3는 `git remote -v`로 저장소를 판별하기 때문이다.
 - `gh-resolved` 표시가 없으면 T3는 `upstream`을 기본 저장소로 잡는다. 그러면 PR이 원본으로 갈 수 있다.
+- GitHub 포크에는 포크할 때 복사된 원본 브랜치가 4,558개 있다. 로컬 클론은 `origin`에서 `delta`와 `main`만 받도록
+  fetch 범위를 좁혀 두었다.

