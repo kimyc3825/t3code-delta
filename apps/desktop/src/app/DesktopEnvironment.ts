@@ -106,7 +106,10 @@ export function resolveDesktopAppBranding(input: {
   return {
     baseName: APP_BASE_NAME,
     stageLabel,
-    displayName: `${APP_BASE_NAME} (${stageLabel})`,
+    // [delta-seam:S4] T3 Code - Delta builds carry "+delta.<revision>" in their version.
+    displayName: /\+delta\.\d+$/.test(input.appVersion)
+      ? `${APP_BASE_NAME} - Delta`
+      : `${APP_BASE_NAME} (${stageLabel})`,
   };
 }
 
