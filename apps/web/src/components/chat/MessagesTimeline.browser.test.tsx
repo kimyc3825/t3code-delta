@@ -865,7 +865,8 @@ describe("MessagesTimeline messages", () => {
     expect((globalThis as { __t3Xss?: number }).__t3Xss).toBeUndefined();
   });
 
-  it("keeps single tildes in user paths literal without changing double tildes or assistant text", async () => {
+  // [delta-fix:H1] Assistant replies keep single tildes literal too.
+  it("keeps single tildes literal in user and assistant text without changing double tildes", async () => {
     const source =
       "Install the skill as ~/folder-a/skills/x, then follow the guide (~/folder-a/guide.md).";
     await using screen = await renderTimeline([
@@ -879,9 +880,8 @@ describe("MessagesTimeline messages", () => {
     expect(user?.textContent).toContain(source);
     expect(user?.querySelector("del")).toBeNull();
     expect(doubleTilde?.querySelector("del")?.textContent).toBe("the old plan");
-    expect(assistant?.querySelector("del")?.textContent).toBe(
-      "/folder-a/skills/x, then follow the guide (",
-    );
+    expect(assistant?.textContent).toContain(source);
+    expect(assistant?.querySelector("del")).toBeNull();
   });
 
   it("renders sanitized raw HTML in assistant messages", async () => {

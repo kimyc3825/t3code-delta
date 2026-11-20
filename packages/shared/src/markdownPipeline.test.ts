@@ -67,7 +67,8 @@ it.each([
     ["__https://x.com/dimasike__", `**${link("https://x.com/dimasike")}**`],
     ["~~https://example.com/name_~~", `~~${link("https://example.com/name_")}~~`],
     ["~~https://example.com/name~~", `~~${link("https://example.com/name")}~~`],
-    ["~https://example.com/name~", `~~${link("https://example.com/name")}~~`],
+    // [delta-fix:H1] A single tilde no longer strikes through, so the URL keeps its trailing tilde.
+    ["~https://example.com/name~", `~${link("https://example.com/name~")}`],
     ["*https://example.com/name~*", `*${link("https://example.com/name~")}*`],
     ["_https://example.com/name~_", `*${link("https://example.com/name~")}*`],
     ["[test](https://example.com/name~)", "[test](https://example.com/name~)"],

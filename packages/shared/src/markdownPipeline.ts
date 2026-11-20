@@ -245,7 +245,8 @@ const CHAT_MARKDOWN_SANITIZE_SCHEMA = {
 } satisfies Parameters<typeof rehypeSanitize>[0];
 
 export const CHAT_MARKDOWN_REMARK_PLUGINS: PluggableList = [
-  remarkGfm,
+  // [delta-fix:H1] Ranges like 1~2 stay literal; only ~~double~~ strikes through.
+  [remarkGfm, { singleTilde: false }],
   remarkEndAutolinksAtScriptPunctuation,
   remarkKeepAutolinkSuffixes,
   remarkLinkAbsoluteFilePaths,
@@ -260,7 +261,8 @@ export const CHAT_MARKDOWN_REMARK_PLUGINS: PluggableList = [
 ];
 
 export const CHAT_MARKDOWN_REMARK_PLUGINS_WITH_BREAKS: PluggableList = [
-  remarkGfm,
+  // [delta-fix:H1] Ranges like 1~2 stay literal; only ~~double~~ strikes through.
+  [remarkGfm, { singleTilde: false }],
   remarkEndAutolinksAtScriptPunctuation,
   remarkKeepAutolinkSuffixes,
   remarkLinkAbsoluteFilePaths,
